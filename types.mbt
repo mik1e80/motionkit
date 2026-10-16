@@ -62,5 +62,11 @@ fn validate_input(
   if distance != 0.0 && (distance < 1.0e-6 || distance > 1.0e6) {
     return Err("Nonzero travel must be within [1e-6,1e6]")
   }
+  if distance > 0.0 &&
+    start.abs().max(target.abs()) * 2.220446049250313e-16 > distance * 1.0e-6 {
+    return Err(
+      "World-coordinate precision is too coarse for travel; shift the coordinate origin",
+    )
+  }
   Ok(())
 }

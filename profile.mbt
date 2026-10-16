@@ -114,6 +114,10 @@ fn assemble(
     if duration < 1.0e-12 || total + duration == total {
       return Err("Phase too short to represent reliably")
     }
+    let represented_duration = total + duration - total
+    if (represented_duration - duration).abs() > 1.0e-6 * duration {
+      return Err("Accumulated time precision is too coarse for phase duration")
+    }
     state = { ..state, acceleration, jerk, }
     segments.push({ start_time: total, duration, state, jerk, })
     let end = advance(state, jerk, duration)
