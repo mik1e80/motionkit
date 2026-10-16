@@ -16,8 +16,9 @@ pub fn plan_scurve(
   let j = limits.jerk
   let a = limits.acceleration
   let v = limits.velocity
-  let mut tj = (a / j).min((v / j).sqrt())
-  let mut ta = (v / (j * tj) - tj).max(0.0)
+  let reaches_acceleration = v > a * (a / j)
+  let mut tj = if reaches_acceleration { a / j } else { (v / j).sqrt() }
+  let mut ta = if reaches_acceleration { (v / a - tj).max(0.0) } else { 0.0 }
   let at_velocity = v * (2.0 * tj + ta)
   let mut tv = 0.0
   if distance >= at_velocity {
