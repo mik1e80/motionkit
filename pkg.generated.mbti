@@ -21,6 +21,19 @@ pub(all) struct AxisMove {
   limits : Limits
 }
 
+pub(all) enum JerkBound {
+  Finite(Double)
+  Unbounded
+} derive(@debug.Debug)
+pub fn JerkBound::to_repr(Self) -> @debug.Repr
+
+pub(all) struct KinematicBounds {
+  velocity : Double
+  acceleration : Double
+  jerk : JerkBound
+} derive(@debug.Debug)
+pub fn KinematicBounds::to_repr(Self) -> @debug.Repr
+
 pub(all) struct Limits {
   velocity : Double
   acceleration : Double
@@ -31,6 +44,7 @@ pub fn Limits::to_repr(Self) -> @debug.Repr
 pub struct Profile {
   // private fields
 }
+pub fn Profile::bounds(Self) -> KinematicBounds
 pub fn Profile::duration(Self) -> Double
 pub fn Profile::kind(Self) -> ProfileKind
 pub fn Profile::limits(Self) -> Limits
@@ -65,6 +79,7 @@ pub struct SyncPlan {
   // private fields
 }
 pub fn SyncPlan::axis_count(Self) -> Int
+pub fn SyncPlan::bounds(Self) -> Array[KinematicBounds]
 pub fn SyncPlan::duration(Self) -> Double
 pub fn SyncPlan::sample(Self, Double) -> Result[Array[State], String]
 

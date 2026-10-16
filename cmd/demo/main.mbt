@@ -28,6 +28,11 @@ fn main {
     "100mm slide: S curve duration=\{profile.duration()}s; trapezoid=\{baseline.duration()}s",
   )
   println("S curve phases: \{profile.phase_times().length() - 1}")
+  match baseline.bounds().jerk {
+    Unbounded =>
+      println("Trapezoid baseline: acceleration jumps, jerk is unbounded")
+    Finite(_) => abort("Trapezoid must not claim a finite jerk bound")
+  }
   let group = @motion.synchronize([
     { start: 0.0, target: 100.0, limits, },
     { start: 20.0, target: -5.0, limits, },

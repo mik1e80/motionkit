@@ -26,4 +26,6 @@ jobs:
         run: |
           moon run cmd/demo
           moon run cmd/demo --target js
+          moon run cmd/boundary_demo
+          moon run cmd/boundary_demo --target js
       - run: python scripts/check_release.py

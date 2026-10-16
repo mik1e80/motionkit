@@ -7,6 +7,7 @@ import csv
 import io
 import math
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -26,8 +27,14 @@ def run(*args, cwd=ROOT, capture=False):
 
 
 def main():
+    manifest = (ROOT / "moon.mod").read_text(encoding="utf-8-sig")
+    name_match = re.search(r'^name\s*=\s*"([^"]+)"', manifest, re.M)
+    version_match = re.search(r'^version\s*=\s*"([^"]+)"', manifest, re.M)
+    if not name_match or not version_match:
+        raise RuntimeError("Module name or version missing")
+    name, version = name_match.group(1), version_match.group(1)
     run("package", "--list")
-    archive = ROOT / "_build/publish/mik1e80-motionkit-0.1.0.zip"
+    archive = ROOT / "_build" / "publish" / f"{name.replace('/', '-')}-{version}.zip"
     workspace = Path(tempfile.mkdtemp(prefix="motionkit-consumer-"))
     package = workspace / "package"
     consumer = workspace / "consumer"
@@ -35,7 +42,8 @@ def main():
     consumer.mkdir()
     required = {"LICENSE", "THIRD_PARTY_NOTICES.md", "README.md", "README.mbt.md",
                 "moon.mod", "moon.pkg", "pkg.generated.mbti", "scurve.mbt",
-                "docs/ARCHITECTURE.md", "docs/ACCEPTANCE.md", "cmd/demo/main.mbt"}
+                "docs/ARCHITECTURE.md", "docs/ACCEPTANCE.md", "docs/FAILURE_CASES.md",
+                "cmd/demo/main.mbt", "cmd/boundary_demo/main.mbt", "bounds.mbt"}
     with zipfile.ZipFile(archive) as bundle:
         names = set()
         for entry in bundle.infolist():
@@ -55,12 +63,14 @@ def main():
         if required - names:
             raise RuntimeError(f"Missing files: {required - names}")
     license_text = (package / "LICENSE").read_text(encoding="utf-8")
+    if (package / "moon.mod").read_text(encoding="utf-8-sig") != manifest:
+        raise RuntimeError("Packaged manifest differs from current source")
     if "Version 2.0, January 2004" not in license_text or "limitations under the License" not in license_text:
         raise RuntimeError("Incomplete project license")
     (workspace / "moon.work").write_text('members = ["package", "consumer"]\n', encoding="utf-8")
     (consumer / "moon.mod").write_text(
-        'name = "audit/motion_consumer"\nversion = "0.1.0"\nimport { "mik1e80/motionkit@0.1.0" }\n', encoding="utf-8")
-    (consumer / "moon.pkg").write_text('import { "mik1e80/motionkit" @motion } for "test"\n', encoding="utf-8")
+        f'name = "audit/motion_consumer"\nversion = "0.1.0"\nimport {{ "{name}@{version}" }}\n', encoding="utf-8")
+    (consumer / "moon.pkg").write_text(f'import {{ "{name}" @motion }} for "test"\n', encoding="utf-8")
     (consumer / "consumer_test.mbt").write_text('''///|
 test "consume packaged S curve and derivative limits" {
   let p = @motion.plan_scurve(0.0, 20.0, { velocity: 4.0, acceleration: 2.0, jerk: 4.0 }).unwrap()
@@ -78,10 +88,20 @@ test "consume synchronization and invalid input diagnostics" {
   assert_eq(p.sample(p.duration()).unwrap()[1].position, -1.0)
   assert_true(@motion.plan_scurve(0.0, 1.0, { ..limits, jerk: 0.0 }) is Err(_))
 }
+///|
+test "coverage and precision failures survive packaging" {
+  let limits : @motion.Limits = { velocity: 4.0, acceleration: 2.0, jerk: 4.0 }
+  assert_true(@motion.plan_trapezoid(0.0, 20.0, limits).unwrap().bounds().jerk is Unbounded)
+  assert_true(@motion.plan_scurve(0.0, 20.0, limits).unwrap().bounds().jerk is Finite(4.0))
+  assert_true(@motion.plan_scurve(1.0e8, 1.0e8 + 0.001, limits) is Err(_))
+  assert_true(@motion.plan_scurve(0.0, 100.0, { velocity: 1.0e-6, acceleration: 1.0e6, jerk: 1.0e6 }) is Err(_))
+}
 ''', encoding="utf-8")
     run("check", "--target", "all", "--deny-warn", cwd=consumer)
     for target in ("wasm", "wasm-gc", "js", "native"):
         run("test", "--target", target, cwd=consumer)
+    for target in ("wasm", "js"):
+        run("run", "cmd/boundary_demo", "--target", target, cwd=package)
     result = run("run", "cmd/csv", "--target", "js", cwd=package, capture=True)
     reader = csv.DictReader(io.StringIO(result.stdout))
     if reader.fieldnames != ["time", "position", "velocity", "acceleration", "jerk"]:
