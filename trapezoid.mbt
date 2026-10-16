@@ -14,7 +14,7 @@ pub fn plan_trapezoid(
     return assemble(start, target, limits, Stationary, [])
   }
   let acceleration = limits.acceleration
-  let peak = limits.velocity.min(@math.sqrt(distance * acceleration))
+  let peak = limits.velocity.min((distance * acceleration).sqrt())
   let ramp = peak / acceleration
   let cruise = ((distance - peak * ramp) / peak).max(0.0)
   assemble(start, target, limits, Trapezoid, [

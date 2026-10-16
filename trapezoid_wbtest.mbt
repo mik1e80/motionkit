@@ -4,7 +4,10 @@ fn near(
   expected : Double,
   tol~ : Double = 1.0e-8,
 ) -> Unit raise {
-  assert_true((actual - expected).abs() <= tol)
+  assert_true(
+    (actual - expected).abs() <= tol,
+    msg="\{actual} differs from \{expected}",
+  )
 }
 
 ///|
