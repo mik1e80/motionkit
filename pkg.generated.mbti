@@ -1,0 +1,73 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "mik1e80/motionkit"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn plan_scurve(Double, Double, Limits) -> Result[Profile, String]
+
+pub fn plan_trapezoid(Double, Double, Limits) -> Result[Profile, String]
+
+pub fn synchronize(Array[AxisMove], minimum_duration? : Double) -> Result[SyncPlan, String]
+
+// Errors
+
+// Types and methods
+pub(all) struct AxisMove {
+  start : Double
+  target : Double
+  limits : Limits
+}
+
+pub(all) struct Limits {
+  velocity : Double
+  acceleration : Double
+  jerk : Double
+} derive(@debug.Debug)
+pub fn Limits::to_repr(Self) -> @debug.Repr
+
+pub struct Profile {
+  // private fields
+}
+pub fn Profile::duration(Self) -> Double
+pub fn Profile::kind(Self) -> ProfileKind
+pub fn Profile::limits(Self) -> Limits
+pub fn Profile::phase_times(Self) -> Array[Double]
+pub fn Profile::sample(Self, Double) -> Result[State, String]
+pub fn Profile::sample_grid(Self, Int) -> Result[Array[Sample], String]
+pub fn Profile::start(Self) -> Double
+pub fn Profile::target(Self) -> Double
+pub fn Profile::to_csv(Self, intervals? : Int) -> Result[String, String]
+
+pub(all) enum ProfileKind {
+  Stationary
+  Trapezoid
+  SCurve
+} derive(@debug.Debug)
+pub fn ProfileKind::to_repr(Self) -> @debug.Repr
+
+pub(all) struct Sample {
+  time : Double
+  state : State
+}
+
+pub(all) struct State {
+  position : Double
+  velocity : Double
+  acceleration : Double
+  jerk : Double
+} derive(@debug.Debug)
+pub fn State::to_repr(Self) -> @debug.Repr
+
+pub struct SyncPlan {
+  // private fields
+}
+pub fn SyncPlan::axis_count(Self) -> Int
+pub fn SyncPlan::duration(Self) -> Double
+pub fn SyncPlan::sample(Self, Double) -> Result[Array[State], String]
+
+// Type aliases
+
+// Traits
