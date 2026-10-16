@@ -1,0 +1,29 @@
+name: Motion profiles
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Install MoonBit
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - run: moon version --all
+      - run: moon fmt --check
+      - run: moon check --target all --deny-warn
+      - run: moon build
+      - run: moon test --target wasm
+      - run: moon test --target wasm-gc
+      - run: moon test --target js
+      - run: moon test --target native
+      - name: Run analytic examples
+        run: |
+          moon run cmd/demo
+          moon run cmd/demo --target js
+      - run: python scripts/check_release.py
