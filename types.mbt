@@ -6,6 +6,9 @@ pub(all) struct Limits {
 } derive(Debug)
 
 ///|
+pub extend Limits with @debug.Debug::{to_repr}
+
+///|
 pub(all) struct State {
   position : Double
   velocity : Double
@@ -19,6 +22,12 @@ pub(all) enum ProfileKind {
   Trapezoid
   SCurve
 } derive(Debug)
+
+///|
+pub extend State with @debug.Debug::{to_repr}
+
+///|
+pub extend ProfileKind with @debug.Debug::{to_repr}
 
 ///|
 fn finite(x : Double) -> Bool {
