@@ -4,6 +4,8 @@ version = "0.1.0"
 
 readme = "README.mbt.md"
 
+repository = "https://github.com/mik1e80/motionkit"
+
 license = "Apache-2.0"
 
 keywords = [ "motion", "trajectory", "s-curve", "jerk", "robotics" ]

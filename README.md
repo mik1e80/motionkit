@@ -4,7 +4,7 @@
 
 只处理起终点速度和加速度为零的离线点到点轨迹。不是 Ruckig 的移植，不提供任意初末状态、碰撞规避、在线重规划、机床实时控制或完整 CNC 功能。
 
-源码版本 0.1.0，尚未发布 Mooncakes，尚未创建远端仓库或提交参赛报名。核心仅使用 MoonBit core。需要 moonc 0.10.15 或更新版本。
+源码版本 0.1.0，[GitHub 仓库](https://github.com/mik1e80/motionkit)，尚未发布 Mooncakes 或提交参赛报名。核心仅使用 MoonBit core。需要 moonc 0.10.15 或更新版本。
 
 ## 解决的问题
 
@@ -27,9 +27,11 @@ S 曲线的位置、速度、加速度连续；jerk 为分段常数，阶段交�
 
 ## 使用与复现
 
-在项目根目录执行：
+获取源码后在项目根目录执行：
 
 ```sh
+git clone https://github.com/mik1e80/motionkit.git
+cd motionkit
 moon test
 moon run cmd/demo
 moon run cmd/demo --target js
